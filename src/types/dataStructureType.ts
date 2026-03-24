@@ -22,3 +22,58 @@ export interface Game {
   status: 'waiting' | 'in_progress' | 'finished';
   // answersReceived: Map<string, { answerIndex: number; timeTaken: number }>;
 }
+
+export enum CommandType {
+  // Аутентификация
+  REG = 'reg',
+
+  // Управление игрой (Запросы/Действия)
+  CREATE_GAME = 'create_game',
+  JOIN_GAME = 'join_game',
+  START_GAME = 'start_game',
+  EXPORT_QUESTIONS = 'export_questions',
+  IMPORT_QUESTIONS = 'import_questions',
+
+  // Игровой процесс (Действия игрока)
+  ANSWER = 'answer',
+
+  // Ответы сервера (Персональные)
+  GAME_CREATED = 'game_created',
+  GAME_JOINED = 'game_joined',
+  ANSWER_ACCEPTED = 'answer_accepted',
+  QUESTIONS_EXPORTED = 'questions_exported',
+  QUESTIONS_IMPORTED = 'questions_imported',
+
+  // Рассылки (Broadcast)
+  PLAYER_JOINED = 'player_joined',
+  UPDATE_PLAYERS = 'update_players',
+  QUESTION = 'question',
+  QUESTION_RESULT = 'question_result',
+  GAME_FINISHED = 'game_finished',
+}
+
+export type CommandsStructureType<T = Record<string, unknown>> = {
+  type: CommandType;
+  data: T;
+  id: number;
+};
+
+export type RegDataType = {
+  name: string;
+  password: string;
+};
+
+export interface User extends RegDataType {
+  index: string;
+}
+
+export type RegDataResType = {
+  name: string;
+  index: number | string;
+  error: boolean;
+  errorText: string;
+};
+
+export interface ExtendedWebSocket extends WebSocket {
+  userId?: string | number;
+}
