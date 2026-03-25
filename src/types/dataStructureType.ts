@@ -1,3 +1,8 @@
+interface Player {
+  name: string;
+  index: number | string; // unique player id
+  score: number;
+}
 export interface Question {
   text: string;
   options: [string, string, string, string]; // exactly 4 options
@@ -55,9 +60,8 @@ export type RegDataReqType = {
   password: string;
 };
 
-export interface Player extends RegDataReqType {
+export interface User extends RegDataReqType {
   index: string;
-  score?: number;
 }
 
 export type RegDataResType = {
@@ -72,7 +76,12 @@ export type CreateGameDataResType = {
   code: string;
 };
 
-export type clientStorageType = {
+export type ClientStorageType = {
   userId: string;
   userName: string;
+};
+
+export type QuestionResType = Omit<Question, 'correctIndex'> & {
+  questionNumber: number;
+  totalQuestions: number;
 };

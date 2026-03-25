@@ -26,7 +26,9 @@ wss.on('connection', ws => {
         });
       }
 
-      ws.send(JSON.stringify(response));
+      if (response) {
+        ws.send(JSON.stringify(response));
+      }
     } catch (e) {
       const err = e as Error;
       console.error(err.message);

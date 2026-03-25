@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Question, Game } from '../types/dataStructureType';
+import { Question, Game, User } from '../types/dataStructureType';
 import { generateRoomCode } from '../utils/generateRoomCode';
 
 export const questionsStorage = {
@@ -19,6 +19,10 @@ export const questionsStorage = {
 export const gameStorage = {
   _games: new Map<string, Game>(),
   _gameCodes: new Map<string, string>(),
+
+  getGame(id: string) {
+    return this._games.get(id);
+  },
 
   createGame(questions: Question[], hostId: string) {
     const id = randomUUID();
@@ -46,5 +50,24 @@ export const gameStorage = {
     this._gameCodes.set(code, id);
 
     return { gameId: gameData.id, code: gameData.code };
+  },
+  joinGame(code: string, user: User) {
+    const id = this._gameCodes.get(code) ?? '';
+    const game = this._games.get(id);
+
+    if (!id || !game) throw new Error('Join game error: game not found');
+
+    const { name, index } = user;
+
+    if (!game.players.some(p => p.index === index)) {
+      game.players.push({ name, index, score: 0 });
+    }
+
+    return {
+      gameId: game.id,
+      playerName: name,
+      playerCount: game.players.length,
+      players: game.players,
+    };
   },
 };

@@ -11,7 +11,7 @@ import {
 export const handleMessage = (
   message: CommandsStructureType,
   ws: WebSocket
-): CommandsStructureType => {
+): CommandsStructureType | undefined => {
   switch (message.type) {
     case CommandType.REG:
       return authService.handleReg(message as CommandsStructureType<RegDataReqType>);
@@ -20,6 +20,11 @@ export const handleMessage = (
         message as CommandsStructureType<{ questions: Question[] }>,
         ws
       );
+    case CommandType.JOIN_GAME:
+      return gameService.handleJoinGame(message as CommandsStructureType<{ code: string }>, ws);
+    case CommandType.START_GAME:
+      gameService.handleStartGame(message as CommandsStructureType<{ gameId: string }>, ws);
+      break;
 
     default:
       return {
