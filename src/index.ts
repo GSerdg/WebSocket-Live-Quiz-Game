@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { handleMessage } from './handlers/handler';
-import { CommandType, ExtendedWebSocket } from './types/dataStructureType';
+import { CommandType } from './types/dataStructureType';
+import { clientsStorage } from './db/auth.storage';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
 
@@ -16,15 +17,19 @@ wss.on('connection', ws => {
   ws.on('message', raw => {
     try {
       const message = JSON.parse(raw.toString());
-      const response = handleMessage(message);
+      const response = handleMessage(message, ws);
 
       if (response?.type === CommandType.REG && !response.data.error) {
-        (ws as unknown as ExtendedWebSocket).userId = response.data.index;
+        clientsStorage.setClient(ws, {
+          userId: response.data.index as string,
+          userName: response.data.name as string,
+        });
       }
 
       ws.send(JSON.stringify(response));
     } catch (e) {
-      console.error('Parse error');
+      const err = e as Error;
+      console.error(err.message);
     }
   });
 });

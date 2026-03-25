@@ -1,37 +1,28 @@
 import { authStorage } from '../db/auth.storage';
-import {
-  CommandsStructureType,
-  CommandType,
-  RegDataResType,
-  RegDataType,
-} from '../types/dataStructureType';
+import { CommandsStructureType, RegDataResType, RegDataReqType } from '../types/dataStructureType';
 
 export const authService = {
-  handleReg(message: CommandsStructureType<RegDataType>): CommandsStructureType<RegDataResType> {
+  handleReg(message: CommandsStructureType<RegDataReqType>): CommandsStructureType<RegDataResType> {
     const { data } = message;
 
-    const response = {
-      type: CommandType.REG,
-      data: {
-        name: data.name,
-        index: '',
-        error: false,
-        errorText: '',
-      },
-      id: message.id,
+    let responseData: RegDataResType = {
+      name: data.name,
+      index: '',
+      error: false,
+      errorText: '',
     };
 
     const userData = authStorage.getUser(data.name);
 
     if (userData) {
-      response.data =
+      responseData =
         userData.password === data.password
           ? {
-              ...response.data,
+              ...responseData,
               index: userData.index,
             }
           : {
-              ...response.data,
+              ...responseData,
               index: userData.index,
               error: true,
               errorText: 'Wrong password',
@@ -39,11 +30,11 @@ export const authService = {
     } else {
       const newUser = authStorage.setUser(data);
 
-      response.data = newUser
-        ? { ...response.data, index: newUser.index }
-        : { ...response.data, error: true, errorText: 'Auth server error' };
+      responseData = newUser
+        ? { ...responseData, index: newUser.index }
+        : { ...responseData, error: true, errorText: 'Auth server error' };
     }
 
-    return response;
+    return { ...message, data: responseData };
   },
 };
