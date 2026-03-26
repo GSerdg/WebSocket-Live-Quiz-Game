@@ -5,10 +5,10 @@ import {
   Question,
   CreateGameDataResType,
   CommandType,
-  QuestionResType,
 } from '../types/dataStructureType';
 import { WebSocket } from 'ws';
 import { broadcastToGame } from '../utils/broadcastToGame';
+import { startQuestionCycle } from './gameLifecycle';
 
 export const gameService = {
   handleCreateGame(
@@ -34,6 +34,9 @@ export const gameService = {
     const user = authStorage.getUser(client?.userName ?? '');
 
     if (!client || !user) throw new Error('User id not found');
+    if (gameStorage.getGameStatus({ code: data.code }) !== 'waiting') {
+      throw new Error('User can not join to game');
+    }
 
     const { gameId, playerName, playerCount, players } = gameStorage.joinGame(data.code, user);
 
@@ -59,28 +62,15 @@ export const gameService = {
     const clientId = clientsStorage.getClient(ws)?.userId;
 
     if (!clientId) throw new Error('User id not found');
+    if (gameStorage.getGameStatus({ id: data.gameId }) !== 'waiting') {
+      throw new Error('User can not start game');
+    }
 
     const game = gameStorage.getGame(data.gameId);
 
     if (clientId !== game?.hostId) throw new Error('Only host can start game');
 
-    game.currentQuestion += 1;
     game.status = 'in_progress';
-
-    const { text, options, timeLimitSec } = game.questions[game.currentQuestion];
-
-    const broadcastQuestionMessage: CommandsStructureType<QuestionResType> = {
-      type: CommandType.QUESTION,
-      id: 0,
-      data: {
-        text,
-        options,
-        timeLimitSec,
-        questionNumber: game.currentQuestion + 1,
-        totalQuestions: game.questions.length,
-      },
-    };
-
-    broadcastToGame(data.gameId, broadcastQuestionMessage);
+    startQuestionCycle(game);
   },
 };

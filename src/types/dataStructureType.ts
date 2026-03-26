@@ -2,6 +2,11 @@ interface Player {
   name: string;
   index: number | string; // unique player id
   score: number;
+
+  // for player answer
+  lastAnswerIndex?: number;
+  lastAnswerPoints: number;
+  hasAnswered: boolean;
 }
 export interface Question {
   text: string;
@@ -18,6 +23,11 @@ export interface Game {
   players: Player[];
   currentQuestion: number; // index of current question (-1 before start)
   status: 'waiting' | 'in_progress' | 'finished';
+
+  //for timers
+  currentQuestionStartTime: number;
+  timerId?: NodeJS.Timeout;
+  answersCount: number;
 }
 
 export enum CommandType {
@@ -84,4 +94,26 @@ export type ClientStorageType = {
 export type QuestionResType = Omit<Question, 'correctIndex'> & {
   questionNumber: number;
   totalQuestions: number;
+};
+
+export type GameIdentifier = { id: string; code?: never } | { code: string; id?: never };
+
+export type PlayerResultType = {
+  name: string;
+  answered: boolean;
+  correct: boolean;
+  pointsEarned: number;
+  totalScore: number;
+};
+
+export type QuestionResultType = {
+  questionIndex: number;
+  correctIndex: number;
+  playerResults: PlayerResultType[];
+};
+
+export type ScoreboardType = {
+  name: string;
+  score: number;
+  rank: number;
 };

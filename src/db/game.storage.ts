@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Question, Game, User } from '../types/dataStructureType';
+import { Question, Game, User, GameIdentifier } from '../types/dataStructureType';
 import { generateRoomCode } from '../utils/generateRoomCode';
 
 export const questionsStorage = {
@@ -24,6 +24,13 @@ export const gameStorage = {
     return this._games.get(id);
   },
 
+  getGameStatus({ id, code }: GameIdentifier) {
+    const gameId = code ? this._gameCodes.get(code) : id;
+    const game = this._games.get(gameId ?? '');
+
+    return game?.status;
+  },
+
   createGame(questions: Question[], hostId: string) {
     const id = randomUUID();
 
@@ -44,6 +51,9 @@ export const gameStorage = {
       players: [],
       currentQuestion: -1,
       status: 'waiting',
+
+      currentQuestionStartTime: 0,
+      answersCount: 0,
     };
 
     this._games.set(id, gameData);
@@ -60,7 +70,7 @@ export const gameStorage = {
     const { name, index } = user;
 
     if (!game.players.some(p => p.index === index)) {
-      game.players.push({ name, index, score: 0 });
+      game.players.push({ name, index, score: 0, lastAnswerPoints: 0, hasAnswered: false });
     }
 
     return {
