@@ -22,8 +22,7 @@ export const startQuestionCycle = (game: Game) => {
   // Рассылка результата и переход к новому вопросу по истечении времени
   game.currentQuestionStartTime = Date.now();
   game.timerId = setTimeout(() => {
-    const broadcastResultsMessage = getBroadcastResultsMessage(game);
-    broadcastToGame(game.id, broadcastResultsMessage);
+    sendAnswer(game);
 
     // таймаут перед новым вопросом для просмотра результатов
     setTimeout(() => startQuestionCycle(game), 5000);
@@ -35,4 +34,9 @@ export const finishGame = (game: Game) => {
 
   const broadcastFinishedMessage = getBroadcastFinishedMessage(game);
   broadcastToGame(game.id, broadcastFinishedMessage);
+};
+
+export const sendAnswer = (game: Game) => {
+  const broadcastResultsMessage = getBroadcastResultsMessage(game);
+  broadcastToGame(game.id, broadcastResultsMessage);
 };

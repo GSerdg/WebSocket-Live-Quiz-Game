@@ -24,6 +24,13 @@ export const gameStorage = {
     return this._games.get(id);
   },
 
+  getPlayer(gameId: string, playerId: string) {
+    const players = this.getGame(gameId)?.players ?? [];
+    const player = players.find(p => p.index === playerId);
+
+    return player;
+  },
+
   getGameStatus({ id, code }: GameIdentifier) {
     const gameId = code ? this._gameCodes.get(code) : id;
     const game = this._games.get(gameId ?? '');
@@ -61,6 +68,7 @@ export const gameStorage = {
 
     return { gameId: gameData.id, code: gameData.code };
   },
+
   joinGame(code: string, user: User) {
     const id = this._gameCodes.get(code) ?? '';
     const game = this._games.get(id);

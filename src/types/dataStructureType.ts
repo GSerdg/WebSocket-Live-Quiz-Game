@@ -117,3 +117,9 @@ export type ScoreboardType = {
   score: number;
   rank: number;
 };
+
+export type AnswerType = {
+  gameId: string;
+  questionIndex: number;
+  answerIndex: number;
+};

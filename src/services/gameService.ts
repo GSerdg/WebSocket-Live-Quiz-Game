@@ -1,14 +1,15 @@
+import { WebSocket } from 'ws';
 import { authStorage, clientsStorage } from '../db/auth.storage';
 import { gameStorage } from '../db/game.storage';
 import {
+  AnswerType,
   CommandsStructureType,
-  Question,
-  CreateGameDataResType,
   CommandType,
+  CreateGameDataResType,
+  Question,
 } from '../types/dataStructureType';
-import { WebSocket } from 'ws';
 import { broadcastToGame } from '../utils/broadcastToGame';
-import { startQuestionCycle } from './gameLifecycle';
+import { sendAnswer, startQuestionCycle } from './gameLifecycle';
 
 export const gameService = {
   handleCreateGame(
@@ -72,5 +73,51 @@ export const gameService = {
 
     game.status = 'in_progress';
     startQuestionCycle(game);
+  },
+
+  handleAnswer(message: CommandsStructureType<AnswerType>, ws: WebSocket) {
+    const BASE_POINTS = 1000;
+    const { data, id } = message;
+    const clientId = clientsStorage.getClient(ws)?.userId;
+
+    const player = gameStorage.getPlayer(data.gameId, clientId ?? '');
+    const game = gameStorage.getGame(data.gameId);
+
+    if (!player) throw new Error('User id not found');
+    if (!game) throw new Error('Game not found');
+    if (gameStorage.getGameStatus({ id: data.gameId }) !== 'in_progress') {
+      throw new Error('Not have started game');
+    }
+
+    const question = game.questions[data.questionIndex];
+    const correctAnswerIndex = question.correctIndex;
+    const timeRemaining =
+      question.timeLimitSec - (Date.now() - game.currentQuestionStartTime) / 1000;
+
+    player.hasAnswered = true;
+    player.lastAnswerIndex = data.answerIndex;
+    game.answersCount += 1;
+
+    if (data.answerIndex === correctAnswerIndex) {
+      const score = BASE_POINTS * (timeRemaining / question.timeLimitSec);
+
+      player.lastAnswerPoints = score;
+      player.score += score;
+    }
+
+    if (game.answersCount >= game.players.length) {
+      clearTimeout(game?.timerId);
+
+      sendAnswer(game);
+      setTimeout(() => startQuestionCycle(game), 5000);
+    }
+
+    return {
+      type: CommandType.ANSWER_ACCEPTED,
+      id,
+      data: {
+        questionIndex: game?.currentQuestion,
+      },
+    };
   },
 };

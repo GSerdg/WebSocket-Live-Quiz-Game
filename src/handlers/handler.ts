@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { authService } from '../services/authService';
 import { gameService } from '../services/gameService';
 import {
+  AnswerType,
   CommandsStructureType,
   CommandType,
   Question,
@@ -25,6 +26,8 @@ export const handleMessage = (
     case CommandType.START_GAME:
       gameService.handleStartGame(message as CommandsStructureType<{ gameId: string }>, ws);
       break;
+    case CommandType.ANSWER:
+      return gameService.handleAnswer(message as CommandsStructureType<AnswerType>, ws);
 
     default:
       return {
