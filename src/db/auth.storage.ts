@@ -19,25 +19,25 @@ export const authStorage = {
 
     return this.getUser(userData.name);
   },
-  deleteUser(userId: string) {
-    const userName = this._usersIds.get(userId);
-    this._users.delete(userName ?? '');
-    this._usersIds.delete(userId);
-  },
 };
 
 export const clientsStorage = {
   _clients: new Map<WebSocket, ClientStorageType>(),
+  _sockets: new Map<string, WebSocket>(),
 
   getClient(ws: WebSocket) {
     return this._clients.get(ws);
   },
+  deleteClient(ws: WebSocket) {
+    const client = this.getClient(ws);
+    this._clients.delete(ws);
+    this._sockets.delete(client?.userId ?? '');
+  },
   setClient(ws: WebSocket, data: ClientStorageType) {
     this._clients.set(ws, data);
+    this._sockets.set(data.userId, ws);
   },
-  getSocketByUserId(userId: string): WebSocket | undefined {
-    for (const [ws, data] of this._clients.entries()) {
-      if (data.userId === userId) return ws;
-    }
+  getSocketByUserId(userId: string) {
+    return this._sockets.get(userId);
   },
 };

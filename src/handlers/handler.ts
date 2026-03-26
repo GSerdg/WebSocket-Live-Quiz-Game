@@ -8,7 +8,7 @@ import {
   Question,
   RegDataReqType,
 } from '../types/dataStructureType';
-import { authStorage, clientsStorage } from '../db/auth.storage';
+import { clientsStorage } from '../db/auth.storage';
 import { gameStorage } from '../db/game.storage';
 import { broadcastToGame } from '../utils/broadcastToGame';
 import { allAnsweredCheck } from '../services/gameLifecycle';
@@ -49,12 +49,14 @@ export const handleClose = (ws: WebSocket) => {
   const clientId = clientsStorage.getClient(ws)?.userId;
   const game = gameStorage.findGameByUserId(clientId ?? '');
 
-  authStorage.deleteUser(clientId ?? '');
+  clientsStorage.deleteClient(ws);
 
   if (!game) return;
 
   if (game?.hostId === clientId) {
     clearTimeout(game.timerId);
+    game.timerId = undefined;
+
     broadcastToGame(game.id, { type: 'error', data: { message: 'Host disconnected' }, id: 0 });
     gameStorage.deleteGame(game.id);
 

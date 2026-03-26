@@ -44,6 +44,7 @@ export const sendAnswer = (game: Game) => {
 export const allAnsweredCheck = (game: Game) => {
   if (game.answersCount >= game.players.length) {
     clearTimeout(game?.timerId);
+    game.timerId = undefined;
 
     sendAnswer(game);
     setTimeout(() => startQuestionCycle(game), 5000);

@@ -90,11 +90,14 @@ export const gameService = {
     if (gameStorage.getGameStatus({ id: data.gameId }) !== 'in_progress') {
       throw new Error('Not have started game');
     }
+    if (data.questionIndex !== game.currentQuestion) throw new Error('question index error');
 
     const question = game.questions[data.questionIndex];
     const correctAnswerIndex = question.correctIndex;
-    const timeRemaining =
-      question.timeLimitSec - (Date.now() - game.currentQuestionStartTime) / 1000;
+    const timeRemaining = Math.max(
+      0,
+      Math.round(question.timeLimitSec - (Date.now() - game.currentQuestionStartTime) / 1000)
+    );
 
     player.hasAnswered = true;
     player.lastAnswerIndex = data.answerIndex;
