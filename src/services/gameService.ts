@@ -9,7 +9,7 @@ import {
   Question,
 } from '../types/dataStructureType';
 import { broadcastToGame } from '../utils/broadcastToGame';
-import { sendAnswer, startQuestionCycle } from './gameLifecycle';
+import { allAnsweredCheck, startQuestionCycle } from './gameLifecycle';
 
 export const gameService = {
   handleCreateGame(
@@ -46,9 +46,11 @@ export const gameService = {
       data: { playerName, playerCount },
       id: 0,
     };
+
+    const playersData = players.map(({ name, index, score }) => ({ name, index, score }));
     const broadcastUpdatePlayersMessage = {
       type: CommandType.UPDATE_PLAYERS,
-      data: players,
+      data: playersData,
       id: 0,
     };
 
@@ -105,12 +107,7 @@ export const gameService = {
       player.score += score;
     }
 
-    if (game.answersCount >= game.players.length) {
-      clearTimeout(game?.timerId);
-
-      sendAnswer(game);
-      setTimeout(() => startQuestionCycle(game), 5000);
-    }
+    allAnsweredCheck(game);
 
     return {
       type: CommandType.ANSWER_ACCEPTED,

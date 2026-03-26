@@ -24,11 +24,21 @@ export const gameStorage = {
     return this._games.get(id);
   },
 
+  deleteGame(id: string) {
+    this._games.delete(id);
+  },
+
   getPlayer(gameId: string, playerId: string) {
     const players = this.getGame(gameId)?.players ?? [];
     const player = players.find(p => p.index === playerId);
 
     return player;
+  },
+
+  findGameByUserId(userId: string) {
+    const games = this._games.values();
+
+    return games.find(game => game.players.some(p => p.index === userId));
   },
 
   getGameStatus({ id, code }: GameIdentifier) {

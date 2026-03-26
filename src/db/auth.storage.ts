@@ -4,6 +4,7 @@ import { RegDataReqType, User, ClientStorageType } from '../types/dataStructureT
 
 export const authStorage = {
   _users: new Map<string, User>(),
+  _usersIds: new Map<string, string>(),
 
   haveUser(name: string) {
     return this._users.has(name);
@@ -14,8 +15,14 @@ export const authStorage = {
   setUser(userData: RegDataReqType) {
     const index = randomUUID();
     this._users.set(userData.name, { ...userData, index });
+    this._usersIds.set(index, userData.name);
 
     return this.getUser(userData.name);
+  },
+  deleteUser(userId: string) {
+    const userName = this._usersIds.get(userId);
+    this._users.delete(userName ?? '');
+    this._usersIds.delete(userId);
   },
 };
 

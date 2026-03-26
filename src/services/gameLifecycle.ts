@@ -40,3 +40,12 @@ export const sendAnswer = (game: Game) => {
   const broadcastResultsMessage = getBroadcastResultsMessage(game);
   broadcastToGame(game.id, broadcastResultsMessage);
 };
+
+export const allAnsweredCheck = (game: Game) => {
+  if (game.answersCount >= game.players.length) {
+    clearTimeout(game?.timerId);
+
+    sendAnswer(game);
+    setTimeout(() => startQuestionCycle(game), 5000);
+  }
+};

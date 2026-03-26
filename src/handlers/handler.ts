@@ -8,6 +8,10 @@ import {
   Question,
   RegDataReqType,
 } from '../types/dataStructureType';
+import { authStorage, clientsStorage } from '../db/auth.storage';
+import { gameStorage } from '../db/game.storage';
+import { broadcastToGame } from '../utils/broadcastToGame';
+import { allAnsweredCheck } from '../services/gameLifecycle';
 
 export const handleMessage = (
   message: CommandsStructureType,
@@ -39,4 +43,31 @@ export const handleMessage = (
         id: message.id,
       };
   }
+};
+
+export const handleClose = (ws: WebSocket) => {
+  const clientId = clientsStorage.getClient(ws)?.userId;
+  const game = gameStorage.findGameByUserId(clientId ?? '');
+
+  authStorage.deleteUser(clientId ?? '');
+
+  if (!game) return;
+
+  if (game?.hostId === clientId) {
+    clearTimeout(game.timerId);
+    broadcastToGame(game.id, { type: 'error', data: { message: 'Host disconnected' }, id: 0 });
+    gameStorage.deleteGame(game.id);
+
+    return;
+  }
+
+  game.players = game.players.filter(p => p.index !== clientId);
+
+  broadcastToGame(game.id, {
+    type: CommandType.UPDATE_PLAYERS,
+    data: game.players.map(({ name, index, score }) => ({ name, index, score })),
+    id: 0,
+  });
+
+  allAnsweredCheck(game);
 };

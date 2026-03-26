@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import { handleMessage } from './handlers/handler';
+import { handleClose, handleMessage } from './handlers/handler';
 import { CommandType } from './types/dataStructureType';
 import { clientsStorage } from './db/auth.storage';
 
@@ -33,5 +33,9 @@ wss.on('connection', ws => {
       const err = e as Error;
       console.error(err.message);
     }
+  });
+
+  ws.on('close', () => {
+    handleClose(ws);
   });
 });
